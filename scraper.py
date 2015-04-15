@@ -40,8 +40,10 @@ for pageLink in pageLinks:
 	title = titleTag.contents[0]
 	# create the right strings for the new filename
 	title = title.upper().strip()
-	csvYr = '20'+title.split(' ')[-1]
+	csvYr = title.split(' ')[-1]
 	csvMth = title.split(' ')[-2][:3]
+	if '20' not in csvYr:
+		csvYr = '20'+csvYr
 	csvMth = convert_mth_strings(csvMth);
 
 	filename = entity_id + "_" + csvYr + "_" + csvMth
