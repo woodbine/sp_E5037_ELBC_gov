@@ -36,7 +36,8 @@ for pageLink in pageLinks:
   	
 	fileUrl = fileBlock.a['href']
 	fileUrl = fileUrl.replace("/sites","http://www.croydon.gov.uk/sites")
-	title = soup2.find('h2').contents[0]
+	titleTag = soup2.findAll('h2')[1] # getting the second <h2> tag on the page
+	title = titleTag.contents[0]
 	# create the right strings for the new filename
 	title = title.upper().strip()
 	csvYr = title.split(' ')[1]
