@@ -34,7 +34,7 @@ for pageLink in pageLinks:
   	
   	fileBlock = soup2.find('h3',{'class':'downloadNow'})
   	
-	fileUrl = fileBlock['href']
+	fileUrl = fileBlock.a['href']
 	fileUrl = fileUrl.replace("/sites","http://www.croydon.gov.uk/sites")
 	title = soup2.find('h2').contents[0]
 	# create the right strings for the new filename
