@@ -28,7 +28,7 @@ pageLinks = block.findAll('a', href=True)
 
 for pageLink in pageLinks:
   pageUrl = pageLink['href']
-  if '/downloads/file' in href:
+  if '/downloads/file' in pageUrl:
   	html2 = urllib2.urlopen(pageUrl)
   	soup2 = BeautifulSoup(html2)
   	
