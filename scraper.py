@@ -9,7 +9,9 @@ import urllib2
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-#### FUNCTIONS 1.0
+#### FUNCTIONS 1.2
+
+import requests             # import requests for validating url
 
 def validateFilename(filename):
     filenameregex = '^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9]+_[0-9][0-9][0-9][0-9]_[0-9QY][0-9]$'
@@ -36,25 +38,26 @@ def validateFilename(filename):
 
 
 def validateURL(url):
-    try:
-        r = urllib2.urlopen(url)
+
+     try:
+        r = requests.get(url, allow_redirects=True, timeout=20)
         count = 1
-        while r.getcode() == 500 and count < 4:
+        while r.status_code == 500 and count < 4:
             print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
             count += 1
-            r = urllib2.urlopen(url)
+            r = requests.get(url, allow_redirects=True, timeout=20)
         sourceFilename = r.headers.get('Content-Disposition')
-
         if sourceFilename:
             ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
         else:
             ext = os.path.splitext(url)[1]
-        validURL = r.getcode() == 200
+        validURL = r.status_code == 200
         validFiletype = ext.lower() in ['.csv', '.xls', '.xlsx']
         return validURL, validFiletype
-    except:
+     except:
         print ("Error validating URL.")
         return False, False
+
 
 
 def validate(filename, file_url):
@@ -84,40 +87,31 @@ def convert_mth_strings ( mth_string ):
 #### VARIABLES 1.0
 
 entity_id = "E5037_ELBC_gov"
-url = "http://www.enfield.gov.uk/downloads/download/1086/council_monthly_expenditure_for_250_and_above_-_report"
+urls = "https://new.enfield.gov.uk/services/business-and-licensing/council-contracts-and-procurement/transparency-reports/monthly-report-for-transactions-over-250/"
 errors = 0
 data = []
+url = 'http://www.example.com'
 
 #### READ HTML 1.0
 
 html = urllib2.urlopen(url)
 soup = BeautifulSoup(html, 'lxml')
 
-
 #### SCRAPE DATA
 
-block = soup.find('div',{'class':'download_box'})
-pageLinks = block.findAll('a', href=True)
 
+html = requests.get(urls)
+soup = BeautifulSoup(html.text, 'lxml')
+pageLinks = soup.findAll('a', href=True)
 for pageLink in pageLinks:
-  pageUrl = pageLink['href']
-  if '/downloads/file' in pageUrl:
-        html2 = urllib2.urlopen(pageUrl)
-        soup2 = BeautifulSoup(html2, 'lxml')
-
-        fileBlock = soup2.find('h3',{'class':'downloadNow'})
-
-        fileUrl = fileBlock.a['href']
-        fileUrl = fileUrl.replace("/sites","http://www.croydon.gov.uk/sites")
-        titleTag = soup2.findAll('h2')[2]
-        title = titleTag.contents[0]
-        title = title.upper().strip()
-        csvYr = title.split(' ')[-1]
-        csvMth = title.split(' ')[-2][:3]
-        if '20' not in csvYr:
-            csvYr = '20'+csvYr
-        csvMth = convert_mth_strings(csvMth.upper())
-        data.append([csvYr, csvMth, fileUrl])
+  pageUrl = 'https://new.enfield.gov.uk'+pageLink['href']
+  if 'xls' in pageUrl:
+      fileBlock = pageLink.text.strip()
+      file_name = fileBlock.split('(')[0].strip()
+      csvYr = file_name[-4:]
+      csvMth = file_name[:3]
+      csvMth = convert_mth_strings(csvMth.upper())
+      data.append([csvYr, csvMth, pageUrl])
 
 #### STORE DATA 1.0
 
